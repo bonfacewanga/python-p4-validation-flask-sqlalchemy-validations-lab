@@ -5,9 +5,7 @@ from models import db, Author, Post
 import logging
 from faker import Faker
 
-
 LOGGER = logging.getLogger(__name__)
-
 
 class TestAuthor:
     '''Class Author in models.py'''
@@ -34,11 +32,14 @@ class TestAuthor:
             db.session.add(author_a)
             db.session.commit()
             
-            with pytest.raises(ValueError):
+            # Try to add a duplicate name, expect an IntegrityError
+            with pytest.raises(IntegrityError):
                 author_b = Author(name = 'Ben', phone_number = '1231144321')
-                
-            db.session.query(Author).delete()
-            db.session.commit()
+                db.session.add(author_b)
+                db.session.commit()
+
+            # Rollback the session to clean up the test
+            db.session.rollback()
 
     def test_requires_ten_digit_phone_number(self):
         '''requires each phone number to be exactly ten digits.'''
